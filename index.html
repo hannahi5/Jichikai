@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>関ヶ谷自治会公式LINE</title>
+    <title>自治会 登録・更新</title>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; background-color: #f4f7f6; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
@@ -65,16 +65,10 @@
             .then(() => { 
                 isLiffInitialized = true;
                 if (!liff.isLoggedIn()) { liff.login(); } 
-            })
-            .catch((err) => {
-                alert("LIFF初期化エラー: " + err);
             });
 
         async function submitForm() {
-            if (!isLiffInitialized) {
-                alert("LIFFを読み込み中です。");
-                return;
-            }
+            if (!isLiffInitialized) return;
 
             try {
                 const lastName = document.getElementById('lastName').value.trim();
@@ -83,20 +77,18 @@
                 const toban = document.getElementById('toban').value.trim();
                 const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
                 
-                if (!lastName || !firstName || !han ) {
-                    alert("名前、班番号は必ず入力してください。");
+                if (!lastName || !firstName || !han) {
+                    alert("名前と班番号は必ず入力してください。");
                     return;
                 }
 
                 const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
                 const message = `【登録・更新】${lastName}|${firstName}|${han}|${toban}|${roles}`;
 
-                // 送信
                 await liff.sendMessages([{ type: 'text', text: message }]);
                 liff.closeWindow();
             } catch (error) {
-                // エラー内容を表示するようにしました
-                alert("エラーが発生しました: " + error.message);
+                alert("送信に失敗しました: " + error.message);
             }
         }
     </script>
