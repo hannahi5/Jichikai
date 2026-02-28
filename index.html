@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>関ヶ谷自治会公式LINE 登録・更新</title>
+    <title>関ヶ谷自治会公式LINE</title>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; background-color: #f4f7f6; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
@@ -40,7 +40,7 @@
 
         <div class="form-group">
             <label>戸番（1〜15）</label>
-            <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="15">
+            <input type="number" id="toban" placeholder="数字で入力" min="1" max="15">
         </div>
 
         <div class="form-group">
@@ -65,32 +65,38 @@
             .then(() => { 
                 isLiffInitialized = true;
                 if (!liff.isLoggedIn()) { liff.login(); } 
+            })
+            .catch((err) => {
+                alert("LIFF初期化エラー: " + err);
             });
 
         async function submitForm() {
-            if (!isLiffInitialized) return;
-
-            const lastName = document.getElementById('lastName').value.trim();
-            const firstName = document.getElementById('firstName').value.trim();
-            const han = document.getElementById('hanNum').value;
-            const toban = document.getElementById('toban').value.trim();
-            const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
-            
-            if (!lastName || !firstName || !han ) {
-                alert("名前、班番号は必ず入力してください。");
+            if (!isLiffInitialized) {
+                alert("LIFFを読み込み中です。");
                 return;
             }
 
-            const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
-            
-            // 戸番を含めた形式にメッセージを拡張
-            const message = `【登録・更新】${lastName}|${firstName}|${han}|${toban}|${roles}`;
-
             try {
+                const lastName = document.getElementById('lastName').value.trim();
+                const firstName = document.getElementById('firstName').value.trim();
+                const han = document.getElementById('hanNum').value;
+                const toban = document.getElementById('toban').value.trim();
+                const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+                
+                if (!lastName || !firstName || !han ) {
+                    alert("名前、班番号は必ず入力してください。");
+                    return;
+                }
+
+                const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+                const message = `【登録・更新】${lastName}|${firstName}|${han}|${toban}|${roles}`;
+
+                // 送信
                 await liff.sendMessages([{ type: 'text', text: message }]);
                 liff.closeWindow();
             } catch (error) {
-                alert("送信に失敗しました: " + error.message);
+                // エラー内容を表示するようにしました
+                alert("エラーが発生しました: " + error.message);
             }
         }
     </script>
