@@ -11,6 +11,7 @@
         label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
         .name-flex { display: flex; gap: 10px; }
         input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .hint { font-size: 11px; color: #888; margin-top: 4px; line-height: 1.4; }
         .option-list { border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #fafafa; }
         .option { display: flex; align-items: center; padding: 8px 0; cursor: pointer; border-bottom: 1px solid #eee; }
         .option:last-child { border-bottom: none; }
@@ -32,8 +33,14 @@
         </div>
 
         <div class="form-group">
-            <label>班番号（1〜60）</label>
-            <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="60">
+            <label>班番号（1〜99）</label>
+            <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="99">
+            <p class="hint">※複数班がある場合は、小さい方の班番号を記載してください</p>
+        </div>
+
+        <div class="form-group">
+            <label>戸番</label>
+            <input type="text" id="toban" placeholder="例：101、1-2-3 など">
         </div>
 
         <div class="form-group">
@@ -41,8 +48,9 @@
             <div class="option-list">
                 <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
                 <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
-                <label class="option"><input type="checkbox" name="role" value="班長（代理）"> 班長（代理）</label>
-                <label class="option"><input type="checkbox" name="role" value="役員"> 役員</label>
+                <label class="option"><input type="checkbox" name="role" value="班長代理"> 班長代理</label>
+                <label class="option"><input type="checkbox" name="role" value="防災部"> 防災部</label>
+                <label class="option"><input type="checkbox" name="role" value="その他役員"> その他役員</label>
             </div>
         </div>
         
@@ -51,26 +59,39 @@
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
+        let isLiffInitialized = false;
+
         liff.init({ liffId: "2009260987-4wydhg8q" })
-            .then(() => { if (!liff.isLoggedIn()) { liff.login(); } });
+            .then(() => { 
+                isLiffInitialized = true;
+                if (!liff.isLoggedIn()) { liff.login(); } 
+            });
 
         async function submitForm() {
+            if (!isLiffInitialized) return;
+
             const lastName = document.getElementById('lastName').value.trim();
             const firstName = document.getElementById('firstName').value.trim();
             const han = document.getElementById('hanNum').value;
+            const toban = document.getElementById('toban').value.trim();
             const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
             
-            if (!lastName || !firstName || !han) {
-                alert("名前と班番号は必ず入力してください。");
+            if (!lastName || !firstName || !han ) {
+                alert("名前、班番号は必ず入力してください。");
                 return;
             }
 
             const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
-            // GAS側で分解しやすいように記号（|）で繋いでメッセージを送る
-            const message = `【一括更新】${lastName}|${firstName}|${han}|${roles}`;
+            
+            // 戸番を含めた形式にメッセージを拡張
+            const message = `【登録・更新】${lastName}|${firstName}|${han}|${toban}|${roles}`;
 
-            await liff.sendMessages([{ type: 'text', text: message }]);
-            liff.closeWindow();
+            try {
+                await liff.sendMessages([{ type: 'text', text: message }]);
+                liff.closeWindow();
+            } catch (error) {
+                alert("送信に失敗しました: " + error.message);
+            }
         }
     </script>
 </body>
