@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自治会 登録・更新</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; padding: 15px; background-color: #f4f7f6; }
+        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        h2 { font-size: 18px; color: #1DB446; margin-bottom: 15px; border-left: 4px solid #1DB446; padding-left: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        .name-flex { display: flex; gap: 10px; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .option-list { border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #fafafa; }
+        .option { display: flex; align-items: center; padding: 8px 0; cursor: pointer; border-bottom: 1px solid #eee; }
+        .option:last-child { border-bottom: none; }
+        input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; accent-color: #1DB446; }
+        .btn { display: block; width: 100%; padding: 15px; background: #1DB446; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; }
+        .btn:active { background: #179c3d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>利用者情報の登録・更新</h2>
+        
+        <div class="form-group">
+            <label>お名前（フルネーム）</label>
+            <div class="name-flex">
+                <input type="text" id="lastName" placeholder="姓">
+                <input type="text" id="firstName" placeholder="名">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>班番号（1〜60）</label>
+            <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="60">
+        </div>
+
+        <div class="form-group">
+            <label>該当する役職（複数選択可）</label>
+            <div class="option-list">
+                <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
+                <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
+                <label class="option"><input type="checkbox" name="role" value="班長（代理）"> 班長（代理）</label>
+                <label class="option"><input type="checkbox" name="role" value="役員"> 役員</label>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="submitForm()">この内容で保存する</button>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        liff.init({ liffId: "2009260987-4wydhg8q" })
+            .then(() => { if (!liff.isLoggedIn()) { liff.login(); } });
+
+        async function submitForm() {
+            const lastName = document.getElementById('lastName').value.trim();
+            const firstName = document.getElementById('firstName').value.trim();
+            const han = document.getElementById('hanNum').value;
+            const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+            
+            if (!lastName || !firstName || !han) {
+                alert("名前と班番号は必ず入力してください。");
+                return;
+            }
+
+            const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+            // GAS側で分解しやすいように記号（|）で繋いでメッセージを送る
+            const message = `【一括更新】${lastName}|${firstName}|${han}|${roles}`;
+
+            await liff.sendMessages([{ type: 'text', text: message }]);
+            liff.closeWindow();
+        }
+    </script>
+</body>
+</html>
