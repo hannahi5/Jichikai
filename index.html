@@ -3,6 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>関ヶ谷自治会 公式LINE 登録・更新</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; background-color: #f4f7f6; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
@@ -57,75 +58,79 @@
         <button class="btn" onclick="submitForm()">この内容で保存する</button>
     </div>
 
-  <script>
-        let isLiffInitialized = false;
+<script>
+    let isLiffInitialized = false;
 
-        // LIFFの初期化
-        liff.init({ liffId: "2009260987-4wydhg8q" })
-            .then(() => { 
-                isLiffInitialized = true;
-                if (!liff.isLoggedIn()) { liff.login(); } 
+    // LIFFの初期化
+    liff.init({ liffId: "2009260987-4wydhg8q" })
+        .then(() => { 
+            isLiffInitialized = true;
+            if (!liff.isLoggedIn()) { liff.login(); } 
+        });
+
+    async function submitForm() {
+        if (!isLiffInitialized) return;
+
+        const btn = document.querySelector('.btn');
+        const lastName = document.getElementById('lastName').value.trim();
+        const firstName = document.getElementById('firstName').value.trim();
+        const han = document.getElementById('hanNum').value;
+        const toban = document.getElementById('toban').value.trim();
+        const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+
+        if (!lastName || !firstName || !han) {
+            alert("名前と班番号は必ず入力してください。");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "送信中...";
+
+        const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+
+        try {
+            const profile = await liff.getProfile();
+            
+            // 1. GASへデータ送信 (fetch)
+            const formData = {
+                userId: profile.userId,
+                lastName: lastName,
+                firstName: firstName,
+                han: han,
+                toban: toban,
+                roles: roles
+            };
+
+            const gasUrl = "https://script.google.com/macros/s/AKfycbyVeAefz-bXOydtk-wgnR9E8QaWuiHRpLUsEtCPRTUZsaOLnB2NmiFYu9WcY3Juw2k/exec";
+
+            // 非同期で送信（awaitをあえて外して高速化することも可能ですが、一旦確実に送ります）
+            await fetch(gasUrl, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(formData)
             });
 
-        async function submitForm() {
-            if (!isLiffInitialized) return;
-
-            // ボタンを連打されないように無効化（任意）
-            const btn = document.querySelector('.btn');
-            btn.disabled = true;
-            btn.innerText = "送信中...";
-
-            try {
-                // 1. LINEのプロフィール（userId）を取得
-                const profile = await liff.getProfile();
-                
-                const lastName = document.getElementById('lastName').value.trim();
-                const firstName = document.getElementById('firstName').value.trim();
-                const han = document.getElementById('hanNum').value;
-                const toban = document.getElementById('toban').value.trim();
-                const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
-                
-                if (!lastName || !firstName || !han) {
-                    alert("名前と班番号は必ず入力してください。");
-                    btn.disabled = false;
-                    btn.innerText = "この内容で保存する";
-                    return;
-                }
-
-                const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
-
-                // 2. 送信用データ（JSON）の作成
-                const formData = {
-                    userId: profile.userId,
-                    lastName: lastName,
-                    firstName: firstName,
-                    han: han,
-                    toban: toban,
-                    roles: roles
-                };
-
-                // 3. GASへ直接送信
-                // ★あとでGASの「デプロイURL」を取得して、ここを書き換えてください
-                const gasUrl = "https://script.google.com/macros/s/AKfycbyVeAefz-bXOydtk-wgnR9E8QaWuiHRpLUsEtCPRTUZsaOLnB2NmiFYu9WcY3Juw2k/exec";
-
-                await fetch(gasUrl, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(formData)
-                });
-
-                // 4. 完了メッセージを出して閉じる
-                alert("登録が完了しました。自治会公式LINEをご利用いただけます。");
-                liff.closeWindow();
-
-            } catch (error) {
-                console.error(error);
-                alert("送信に失敗しました。通信環境を確認してください。");
-                btn.disabled = false;
-                btn.innerText = "この内容で保存する";
+            // 2. LINEトーク画面に「合言葉」を投稿させる
+            // これによりGAS側でreplyTokenが使えるようになります
+            if (liff.isInClient()) {
+                await liff.sendMessages([
+                    {
+                        type: 'text',
+                        text: "登録・更新を完了しました"
+                    }
+                ]);
             }
+
+            // 完了
+            liff.closeWindow();
+
+        } catch (error) {
+            console.error(error);
+            alert("送信に失敗しました。");
+            btn.disabled = false;
+            btn.innerText = "この内容で保存する";
         }
-    </script>
+    }
+</script>
 </body>
 </html>
