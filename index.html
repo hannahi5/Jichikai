@@ -57,10 +57,10 @@
         <button class="btn" onclick="submitForm()">この内容で保存する</button>
     </div>
 
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script>
+  <script>
         let isLiffInitialized = false;
 
+        // LIFFの初期化
         liff.init({ liffId: "2009260987-4wydhg8q" })
             .then(() => { 
                 isLiffInitialized = true;
@@ -70,7 +70,15 @@
         async function submitForm() {
             if (!isLiffInitialized) return;
 
+            // ボタンを連打されないように無効化（任意）
+            const btn = document.querySelector('.btn');
+            btn.disabled = true;
+            btn.innerText = "送信中...";
+
             try {
+                // 1. LINEのプロフィール（userId）を取得
+                const profile = await liff.getProfile();
+                
                 const lastName = document.getElementById('lastName').value.trim();
                 const firstName = document.getElementById('firstName').value.trim();
                 const han = document.getElementById('hanNum').value;
@@ -79,16 +87,43 @@
                 
                 if (!lastName || !firstName || !han) {
                     alert("名前と班番号は必ず入力してください。");
+                    btn.disabled = false;
+                    btn.innerText = "この内容で保存する";
                     return;
                 }
 
                 const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
-                const message = `【登録・更新】${lastName}|${firstName}|${han}|${toban}|${roles}`;
 
-                await liff.sendMessages([{ type: 'text', text: message }]);
+                // 2. 送信用データ（JSON）の作成
+                const formData = {
+                    userId: profile.userId,
+                    lastName: lastName,
+                    firstName: firstName,
+                    han: han,
+                    toban: toban,
+                    roles: roles
+                };
+
+                // 3. GASへ直接送信
+                // ★あとでGASの「デプロイURL」を取得して、ここを書き換えてください
+                const gasUrl = "https://script.google.com/macros/s/ここにGASのURL/exec";
+
+                await fetch(gasUrl, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+
+                // 4. 完了メッセージを出して閉じる
+                alert("登録が完了しました。自治会公式LINEをご利用いただけます。");
                 liff.closeWindow();
+
             } catch (error) {
-                alert("送信に失敗しました: " + error.message);
+                console.error(error);
+                alert("送信に失敗しました。通信環境を確認してください。");
+                btn.disabled = false;
+                btn.innerText = "この内容で保存する";
             }
         }
     </script>
