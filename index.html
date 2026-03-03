@@ -59,17 +59,17 @@
             <input type="number" id="toban" placeholder="数字で入力" min="1" max="19">
         </div>
 
-        <div class="form-group">
-            <label>該当する役職（複数選択可）</label>
-            <div class="option-list">
-                <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
-                <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
-                <label class="option"><input type="checkbox" name="role" value="班長代理"> 班長代理</label>
-                <label class="option"><input type="checkbox" name="role" value="防災部"> 防災部</label>
-                <label class="option"><input type="checkbox" name="role" value="その他役員"> その他役員</label>
-            </div>
-        </div>
-        
+<div class="form-group">
+    <label>該当する役職（複数選択可）</label>
+    <div class="option-list">
+        <label class="option"><input type="checkbox" name="role" value="一般" id="role-general" checked> 一般（役職なし）</label>
+        <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
+        <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
+        <label class="option"><input type="checkbox" name="role" value="班長代理"> 班長代理</label>
+        <label class="option"><input type="checkbox" name="role" value="防災部"> 防災部</label>
+        <label class="option"><input type="checkbox" name="role" value="その他役員"> その他役員</label>
+    </div>
+</div>
         <button class="btn" onclick="submitForm()">この内容で保存する</button>
     </div>
 
@@ -82,13 +82,35 @@
             if (!liff.isLoggedIn()) { liff.login(); } 
         });
 
+// チェックボックスの連動処理
+document.addEventListener('change', (e) => {
+    if (e.target.name === 'role') {
+        const generalCb = document.getElementById('role-general');
+        const otherCbs = Array.from(document.querySelectorAll('input[name="role"]:not(#role-general)'));
+        
+        if (e.target === generalCb && generalCb.checked) {
+            // 「一般」をチェックしたら、他の役職をすべて外す
+            otherCbs.forEach(cb => cb.checked = false);
+        } else if (e.target !== generalCb && e.target.checked) {
+            // 他の役職をどれかチェックしたら、「一般」を自動で外す
+            generalCb.checked = false;
+        }
+        
+        // 全てのチェックが外れたら、自動的に「一般」にチェックを戻す
+        const anyChecked = document.querySelectorAll('input[name="role"]:checked').length > 0;
+        if (!anyChecked) {
+            generalCb.checked = true;
+        }
+    }
+});
+
     async function submitForm() {
         if (!isLiffInitialized) return;
 
         const btn = document.querySelector('.btn');
         const lastName = document.getElementById('lastName').value.trim();
         const firstName = document.getElementById('firstName').value.trim();
-        const ageGeneration = document.getElementById('ageGeneration').value; // 追加
+        const ageGeneration = document.getElementById('ageGeneration').value; 
         const han = document.getElementById('hanNum').value;
         const toban = document.getElementById('toban').value.trim();
         const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
