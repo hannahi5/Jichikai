@@ -74,9 +74,15 @@
     </div>
 
 <script>
+    // ==========================================
+    // 設定エリア：ここを書き換えるだけでOK
+    // ==========================================
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyDNJ3KfLPuxjsYyldMlwfEndrbNoe7VZFfMQxianjwDwfbUGqUxm59fzFnh1Nwxe03/exe";
+    const LIFF_ID = "2009260987-4wydhg8q";
+    // ==========================================
     let isLiffInitialized = false;
 
-    liff.init({ liffId: "2009260987-4wydhg8q" })
+    liff.init({ liffId:LIFF_ID })
         .then(() => { 
             isLiffInitialized = true;
             if (!liff.isLoggedIn()) { liff.login(); } 
@@ -139,9 +145,7 @@ document.addEventListener('change', (e) => {
                 roles: roles
             };
 
-            const gasUrl = "https://script.google.com/macros/s/AKfycbyDNJ3KfLPuxjsYyldMlwfEndrbNoe7VZFfMQxianjwDwfbUGqUxm59fzFnh1Nwxe03/exec";
-
-            await fetch(gasUrl, {
+            await fetch(GAS_URL, {
                 method: "POST",
                 mode: "no-cors",
                 body: JSON.stringify(formData)
