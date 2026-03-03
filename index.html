@@ -19,6 +19,22 @@
         input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; accent-color: #1DB446; }
         .btn { display: block; width: 100%; padding: 15px; background: #1DB446; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; }
         .btn:active { background: #179c3d; }
+        /* ボタンの横並び用 */
+        .btn-flex { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-gray { background: #ccc; color: #333; } /* 中止・修正用 */
+        
+        /* 確認画面のスタイル */
+        #confirmScreen {
+        display: none; /* 最初は隠す */
+        background: white; padding: 20px; border-radius: 12px;
+        }
+        .confirm-item {
+        display: flex; justify-content: space-between;
+        padding: 10px 0; border-bottom: 1px solid #eee;
+        font-size: 15px;
+        }
+    .confirm-label { color: #666; font-weight: bold; }
+    .confirm-value { color: #333; }        
     </style>
 </head>
 <body>
@@ -73,6 +89,32 @@
         <button class="btn" onclick="submitForm()">この内容で保存する</button>
     </div>
 
+
+<div id="confirmScreen" class="container" style="display:none;">
+    <h2>入力内容の確認</h2>
+    <div id="confirmList">
+        </div>
+    <p style="margin-top:20px; font-weight:bold; text-align:center;">この内容で登録してよろしいですか？</p>
+    
+    <div class="btn-flex">
+        <button class="btn btn-gray" onclick="backToEdit()">修正</button>
+        <button class="btn" id="finalSubmitBtn" onclick="executeSubmit()">登録</button>
+    </div>
+</div>
+
+
+    <div id="successMessage">
+    <div class="success-icon">Check!</div>
+    <div class="success-title">登録・更新が完了しました</div>
+    <p class="success-text">
+        情報を最新に更新しました。<br>
+        ご協力ありがとうございました。
+    </p>
+    <button class="btn" onclick="liff.closeWindow()">閉じる</button>
+</div>
+
+    
+
 <script>
     // ==========================================
     // 設定エリア：ここを書き換えるだけでOK
@@ -110,60 +152,84 @@ document.addEventListener('change', (e) => {
     }
 });
 
-    async function submitForm() {
-        if (!isLiffInitialized) return;
+    
+// 入力データを一時保持する変数
+let tempFormData = null;
 
-        const btn = document.querySelector('.btn');
-        const lastName = document.getElementById('lastName').value.trim();
-        const firstName = document.getElementById('firstName').value.trim();
-        const ageGeneration = document.getElementById('ageGeneration').value; 
-        const han = document.getElementById('hanNum').value;
-        const toban = document.getElementById('toban').value.trim();
-        const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+// 「保存する」ボタンを押したとき（確認画面へ）
+async function submitForm() {
+    if (!isLiffInitialized) return;
 
-        if (!lastName || !firstName || !han ) {
-            alert("お名前、班番号は必ず入力・選択してください。");
-            return;
-        }
+    const lastName = document.getElementById('lastName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const ageGeneration = document.getElementById('ageGeneration').value; 
+    const han = document.getElementById('hanNum').value;
+    const toban = document.getElementById('toban').value.trim();
+    const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
 
-        btn.disabled = true;
-        btn.innerText = "送信中...";
-
-        const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
-
-        try {
-            const profile = await liff.getProfile();
-            
-            const formData = {
-                userId: profile.userId,
-                displayName: profile.displayName,
-                lastName: lastName,
-                firstName: firstName,
-                ageGeneration: ageGeneration, // 追加
-                han: han,
-                toban: toban,
-                roles: roles
-            };
-
-            await fetch(GAS_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify(formData)
-            });
-
-            if (liff.isInClient()) {
-                await liff.sendMessages([{ type: 'text', text: "登録・更新を完了しました" }]);
-            }
-
-            liff.closeWindow();
-
-        } catch (error) {
-            console.error(error);
-            alert("送信に失敗しました。");
-            btn.disabled = false;
-            btn.innerText = "この内容で保存する";
-        }
+    if (!lastName || !firstName || !han ) {
+        alert("お名前、班番号は必ず入力してください。");
+        return;
     }
+
+    const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+
+    // データを一時保存
+    tempFormData = { lastName, firstName, ageGeneration, han, toban, roles };
+
+    // 確認画面のリストを作成
+    const confirmList = document.getElementById('confirmList');
+    confirmList.innerHTML = `
+        <div class="confirm-item"><span class="confirm-label">お名前</span><span class="confirm-value">${lastName} ${firstName}</span></div>
+        <div class="confirm-item"><span class="confirm-label">年代</span><span class="confirm-value">${ageGeneration || '未選択'}</span></div>
+        <div class="confirm-item"><span class="confirm-label">班番号</span><span class="confirm-value">${han} 班</span></div>
+        <div class="confirm-item"><span class="confirm-label">戸番</span><span class="confirm-value">${toban || '-'}</span></div>
+        <div class="confirm-item"><span class="confirm-label">役職</span><span class="confirm-value">${roles}</span></div>
+    `;
+
+    // 画面切り替え
+    document.querySelector('.container').style.display = 'none';
+    document.getElementById('confirmScreen').style.display = 'block';
+}
+
+// 「修正」ボタンを押したとき
+function backToEdit() {
+    document.getElementById('confirmScreen').style.display = 'none';
+    document.querySelector('.container').style.display = 'block';
+}
+
+// 確認画面で「登録」を押したとき（実際にGASへ送る）
+async function executeSubmit() {
+    const btn = document.getElementById('finalSubmitBtn');
+    btn.disabled = true;
+    btn.innerText = "送信中...";
+
+    try {
+        const profile = await liff.getProfile();
+        const sendData = {
+            userId: profile.userId,
+            displayName: profile.displayName,
+            ...tempFormData // 一時保存しておいたデータ
+        };
+
+        await fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(sendData)
+        });
+
+        // 完了画面へ
+        document.getElementById('confirmScreen').style.display = 'none';
+        document.getElementById('successMessage').style.display = 'flex';
+
+    } catch (error) {
+        console.error(error);
+        alert("送信に失敗しました。");
+        btn.disabled = false;
+        btn.innerText = "登録";
+    }
+}
+ 
 </script>
 </body>
 </html>
