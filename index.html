@@ -93,7 +93,6 @@
         const toban = document.getElementById('toban').value.trim();
         const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
 
-        // バリデーションに年代を追加
         if (!lastName || !firstName || !han ) {
             alert("お名前、班番号は必ず入力・選択してください。");
             return;
