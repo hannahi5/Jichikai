@@ -17,111 +17,83 @@
         .option { display: flex; align-items: center; padding: 8px 0; cursor: pointer; border-bottom: 1px solid #eee; }
         .option:last-child { border-bottom: none; }
         input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; accent-color: #1DB446; }
-        .btn { display: block; width: 100%; padding: 15px; background: #1DB446; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; }
+        .btn { display: block; width: 100%; padding: 15px; background: #1DB446; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin-top: 20px; cursor: pointer; text-align: center; text-decoration: none;}
         .btn:active { background: #179c3d; }
-        /* ボタンの横並び用 */
-        .btn-flex { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-gray { background: #ccc; color: #333; } /* 中止・修正用 */
-        
-        /* 確認画面のスタイル */
-        #confirmScreen {
-        display: none; /* 最初は隠す */
-        background: white; padding: 20px; border-radius: 12px;
+        .btn:disabled { background: #ccc; }
+
+        /* 完了画面を初期状態で隠すためのスタイル */
+        #success-message {
+            display: none;
+            text-align: center;
+            padding: 40px 10px;
         }
-        .confirm-item {
-        display: flex; justify-content: space-between;
-        padding: 10px 0; border-bottom: 1px solid #eee;
-        font-size: 15px;
-        }
-    .confirm-label { color: #666; font-weight: bold; }
-    .confirm-value { color: #333; }        
+        #success-message h3 { color: #1DB446; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>利用者情報の登録・更新</h2>
-        
-        <div class="form-group">
-            <label>お名前</label>
-            <div class="name-flex">
-                <input type="text" id="lastName" placeholder="姓">
-                <input type="text" id="firstName" placeholder="名">
+        <div id="input-form">
+            <h2>利用者情報の登録・更新</h2>
+            
+            <div class="form-group">
+                <label>お名前</label>
+                <div class="name-flex">
+                    <input type="text" id="lastName" placeholder="姓">
+                    <input type="text" id="firstName" placeholder="名">
+                </div>
             </div>
+
+            <div class="form-group">
+                <label>年代</label>
+                <select id="ageGeneration">
+                    <option value="">選択してください</option>
+                    <option value="10代以下">10代以下</option>
+                    <option value="20代">20代</option>
+                    <option value="30代">30代</option>
+                    <option value="40代">40代</option>
+                    <option value="50代">50代</option>
+                    <option value="60代">60代</option>
+                    <option value="70代">70代</option>
+                    <option value="80代以上">80代以上</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>班番号（1〜101）</label>
+                <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="101">
+                <p class="hint">※複数班がある場合は、小さい方の班番号を記載してください</p>
+            </div>
+
+            <div class="form-group">
+                <label>戸番（1〜19）</label>
+                <input type="number" id="toban" placeholder="数字で入力" min="1" max="19">
+            </div>
+
+            <div class="form-group">
+                <label>該当する役職（複数選択可）</label>
+                <div class="option-list">
+                    <label class="option"><input type="checkbox" name="role" value="一般" id="role-general" checked> 一般（役職なし）</label>
+                    <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
+                    <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
+                    <label class="option"><input type="checkbox" name="role" value="班長代理"> 班長代理</label>
+                    <label class="option"><input type="checkbox" name="role" value="防災部"> 防災部</label>
+                    <label class="option"><input type="checkbox" name="role" value="その他役員"> その他役員</label>
+                </div>
+            </div>
+            <button class="btn" id="submitBtn" onclick="submitForm()">この内容で保存する</button>
         </div>
 
-        <div class="form-group">
-            <label>年代</label>
-            <select id="ageGeneration">
-                <option value="">選択してください</option>
-                <option value="10代以下">10代以下</option>
-                <option value="20代">20代</option>
-                <option value="30代">30代</option>
-                <option value="40代">40代</option>
-                <option value="50代">50代</option>
-                <option value="60代">60代</option>
-                <option value="70代">70代</option>
-                <option value="80代以上">80代以上</option>
-            </select>
+        <div id="success-message">
+            <h3>Check!</h3>
+            <p>登録・更新が完了しました。</p>
+            <p>情報を最新に更新しました。<br>ご協力ありがとうございました。</p>
+            <button class="btn" onclick="liff.closeWindow()">閉じる</button>
         </div>
-
-        <div class="form-group">
-            <label>班番号（1〜101）</label>
-            <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="101">
-            <p class="hint">※複数班がある場合は、小さい方の班番号を記載してください</p>
-        </div>
-
-        <div class="form-group">
-            <label>戸番（1〜19）</label>
-            <input type="number" id="toban" placeholder="数字で入力" min="1" max="19">
-        </div>
-
-<div class="form-group">
-    <label>該当する役職（複数選択可）</label>
-    <div class="option-list">
-        <label class="option"><input type="checkbox" name="role" value="一般" id="role-general" checked> 一般（役職なし）</label>
-        <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
-        <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
-        <label class="option"><input type="checkbox" name="role" value="班長代理"> 班長代理</label>
-        <label class="option"><input type="checkbox" name="role" value="防災部"> 防災部</label>
-        <label class="option"><input type="checkbox" name="role" value="その他役員"> その他役員</label>
     </div>
-</div>
-        <button class="btn" onclick="submitForm()">この内容で保存する</button>
-    </div>
-
-
-<div id="confirmScreen" class="container" style="display:none;">
-    <h2>入力内容の確認</h2>
-    <div id="confirmList">
-        </div>
-    <p style="margin-top:20px; font-weight:bold; text-align:center;">この内容で登録してよろしいですか？</p>
-    
-    <div class="btn-flex">
-        <button class="btn btn-gray" onclick="backToEdit()">修正</button>
-        <button class="btn" id="finalSubmitBtn" onclick="executeSubmit()">登録</button>
-    </div>
-</div>
-
-
-    <div id="successMessage">
-    <div class="success-icon">Check!</div>
-    <div class="success-title">登録・更新が完了しました</div>
-    <p class="success-text">
-        情報を最新に更新しました。<br>
-        ご協力ありがとうございました。
-    </p>
-    <button class="btn" onclick="liff.closeWindow()">閉じる</button>
-</div>
-
-    
 
 <script>
-    // ==========================================
-    // 設定エリア：ここを書き換えるだけでOK
-    // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxN7dnrGjaIAsyzsAEkndCx6hgfu_jcNfrFc2iaANkUOFIivaXNl-gcBXJJqRWNtR6x/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyQXMdOgMVm1xNh0XxnJsrjBr2XHMjfnB5VJ8NIAmXk_AN7IiZ_u02AciFIPX_Yq1KX/exec";
     const LIFF_ID = "2009260987-4wydhg8q";
-    // ==========================================
     let isLiffInitialized = false;
 
     liff.init({ liffId:LIFF_ID })
@@ -130,106 +102,81 @@
             if (!liff.isLoggedIn()) { liff.login(); } 
         });
 
-// チェックボックスの連動処理
-document.addEventListener('change', (e) => {
-    if (e.target.name === 'role') {
-        const generalCb = document.getElementById('role-general');
-        const otherCbs = Array.from(document.querySelectorAll('input[name="role"]:not(#role-general)'));
-        
-        if (e.target === generalCb && generalCb.checked) {
-            // 「一般」をチェックしたら、他の役職をすべて外す
-            otherCbs.forEach(cb => cb.checked = false);
-        } else if (e.target !== generalCb && e.target.checked) {
-            // 他の役職をどれかチェックしたら、「一般」を自動で外す
-            generalCb.checked = false;
+    // チェックボックスの連動処理
+    document.addEventListener('change', (e) => {
+        if (e.target.name === 'role') {
+            const generalCb = document.getElementById('role-general');
+            const otherCbs = Array.from(document.querySelectorAll('input[name="role"]:not(#role-general)'));
+            
+            if (e.target === generalCb && generalCb.checked) {
+                otherCbs.forEach(cb => cb.checked = false);
+            } else if (e.target !== generalCb && e.target.checked) {
+                generalCb.checked = false;
+            }
+            
+            const anyChecked = document.querySelectorAll('input[name="role"]:checked').length > 0;
+            if (!anyChecked) {
+                generalCb.checked = true;
+            }
         }
-        
-        // 全てのチェックが外れたら、自動的に「一般」にチェックを戻す
-        const anyChecked = document.querySelectorAll('input[name="role"]:checked').length > 0;
-        if (!anyChecked) {
-            generalCb.checked = true;
+    });
+
+    async function submitForm() {
+        if (!isLiffInitialized) return;
+
+        const btn = document.getElementById('submitBtn');
+        const lastName = document.getElementById('lastName').value.trim();
+        const firstName = document.getElementById('firstName').value.trim();
+        const ageGeneration = document.getElementById('ageGeneration').value; 
+        const han = document.getElementById('hanNum').value;
+        const toban = document.getElementById('toban').value.trim();
+        const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+
+        if (!lastName || !firstName || !han ) {
+            alert("お名前、班番号は必ず入力・選択してください。");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "送信中...";
+
+        const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+
+        try {
+            const profile = await liff.getProfile();
+            const formData = {
+                userId: profile.userId,
+                displayName: profile.displayName,
+                lastName: lastName,
+                firstName: firstName,
+                ageGeneration: ageGeneration,
+                han: han,
+                toban: toban,
+                roles: roles
+            };
+
+            await fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(formData)
+            });
+
+            // メッセージ送信を試みる（任意）
+            if (liff.isInClient()) {
+                await liff.sendMessages([{ type: 'text', text: "登録・更新を完了しました" }]).catch(e => console.log(e));
+            }
+
+            // 表示を切り替える
+            document.getElementById('input-form').style.display = 'none';
+            document.getElementById('success-message').style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            alert("送信に失敗しました。");
+            btn.disabled = false;
+            btn.innerText = "この内容で保存する";
         }
     }
-});
-
-    
-// 入力データを一時保持する変数
-let tempFormData = null;
-
-// 「保存する」ボタンを押したとき（確認画面へ）
-async function submitForm() {
-    if (!isLiffInitialized) return;
-
-    const lastName = document.getElementById('lastName').value.trim();
-    const firstName = document.getElementById('firstName').value.trim();
-    const ageGeneration = document.getElementById('ageGeneration').value; 
-    const han = document.getElementById('hanNum').value;
-    const toban = document.getElementById('toban').value.trim();
-    const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
-
-    if (!lastName || !firstName || !han ) {
-        alert("お名前、班番号は必ず入力してください。");
-        return;
-    }
-
-    const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
-
-    // データを一時保存
-    tempFormData = { lastName, firstName, ageGeneration, han, toban, roles };
-
-    // 確認画面のリストを作成
-    const confirmList = document.getElementById('confirmList');
-    confirmList.innerHTML = `
-        <div class="confirm-item"><span class="confirm-label">お名前</span><span class="confirm-value">${lastName} ${firstName}</span></div>
-        <div class="confirm-item"><span class="confirm-label">年代</span><span class="confirm-value">${ageGeneration || '未選択'}</span></div>
-        <div class="confirm-item"><span class="confirm-label">班番号</span><span class="confirm-value">${han} 班</span></div>
-        <div class="confirm-item"><span class="confirm-label">戸番</span><span class="confirm-value">${toban || '-'}</span></div>
-        <div class="confirm-item"><span class="confirm-label">役職</span><span class="confirm-value">${roles}</span></div>
-    `;
-
-    // 画面切り替え
-    document.querySelector('.container').style.display = 'none';
-    document.getElementById('confirmScreen').style.display = 'block';
-}
-
-// 「修正」ボタンを押したとき
-function backToEdit() {
-    document.getElementById('confirmScreen').style.display = 'none';
-    document.querySelector('.container').style.display = 'block';
-}
-
-// 確認画面で「登録」を押したとき（実際にGASへ送る）
-async function executeSubmit() {
-    const btn = document.getElementById('finalSubmitBtn');
-    btn.disabled = true;
-    btn.innerText = "送信中...";
-
-    try {
-        const profile = await liff.getProfile();
-        const sendData = {
-            userId: profile.userId,
-            displayName: profile.displayName,
-            ...tempFormData // 一時保存しておいたデータ
-        };
-
-        await fetch(GAS_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(sendData)
-        });
-
-        // 完了画面へ
-        document.getElementById('confirmScreen').style.display = 'none';
-        document.getElementById('successMessage').style.display = 'flex';
-
-    } catch (error) {
-        console.error(error);
-        alert("送信に失敗しました。");
-        btn.disabled = false;
-        btn.innerText = "登録";
-    }
-}
- 
 </script>
 </body>
 </html>
