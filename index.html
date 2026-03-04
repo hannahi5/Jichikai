@@ -48,7 +48,7 @@
 
             <div class="form-group">
                 <label>班番号（1〜101）<span class="required">必須</span></label>
-                <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="101" inputmode="numeric">
+                <input type="number" id="hanBan" placeholder="数字で入力" min="1" max="101" inputmode="numeric">
                 <p class="hint">※複数の班がある場合は、小さい方の班番号を入力してください</p>
             </div>
 
@@ -113,6 +113,34 @@
             if (!liff.isLoggedIn()) { liff.login(); } 
         });
 
+
+    // 要素の取得
+    const hanInput = document.getElementById("hanBan");
+    const nonMemberCheck = document.getElementById("nonMember");
+    
+    // 1. 班番号が入力されたら「会員以外」を制御
+    hanInput.addEventListener("input", () => {
+      if (hanInput.value.length > 0) {
+        nonMemberCheck.disabled = true; // チェックボックスを無効化
+        nonMemberCheck.parentElement.style.opacity = "0.5"; // 見た目を薄くする
+      } else {
+        nonMemberCheck.disabled = false;
+        nonMemberCheck.parentElement.style.opacity = "1";
+      }
+    });
+    
+    // 2. 「会員以外」がチェックされたら「班番号」を制御
+    nonMemberCheck.addEventListener("change", () => {
+      if (nonMemberCheck.checked) {
+        hanInput.disabled = true;
+        hanInput.value = ""; // 入力されていたら消去
+        hanInput.style.backgroundColor = "#f0f0f0"; // グレー背景
+      } else {
+        hanInput.disabled = false;
+        hanInput.style.backgroundColor = "#ffffff";
+      }
+    });
+    
     document.addEventListener('change', (e) => {
         if (e.target.name === 'role') {
             const generalCb = document.getElementById('role-general');
@@ -135,7 +163,7 @@
         const lastName = document.getElementById('lastName').value.trim();
         const firstName = document.getElementById('firstName').value.trim();
         const ageGeneration = document.getElementById('ageGeneration').value; 
-        const hanStr = document.getElementById('hanNum').value.trim();
+        const hanStr = document.getElementById('hanBan').value.trim();
         const kobanStr = document.getElementById('koban').value.trim();
 
         // --- バリデーション（入力チェック） ---
@@ -208,7 +236,7 @@
             console.error(error);
             alert("送信に失敗しました。");
             btn.disabled = false;
-            btn.innerText = "この内容で保存する";
+            btn.innerText = "この内容で登録する";
         }
     }
 </script>
