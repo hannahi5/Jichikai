@@ -103,140 +103,129 @@
     </div>
 
 <script>
-    // ==========================================
-    // 1. 【設定値】
-    // ==========================================
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxg2K7DBiyeLYGoSrweejDND3kEsey_cjZm277eYHt6avM_Fhmudfyo4oQSR5c7TFqOrg/exec";
     const LIFF_ID = "2009310809-0MVo7qOg";
-    
+
     let isLiffInitialized = false;
 
-    // ==========================================
-    // 2. 【初期化処理】
-    // ==========================================
-    liff.init({ liffId: LIFF_ID })
+    liff.init({ liffId:LIFF_ID })
         .then(() => { 
             isLiffInitialized = true;
             if (!liff.isLoggedIn()) { liff.login(); } 
-        })
-        .catch((err) => {
-            console.error("LIFF初期化失敗", err);
         });
 
-    // HTMLが全部読み込まれてから「要素の取得」や「監視」を開始する
-    window.onload = function() {
-        const hanInput = document.getElementById("hanBan");
-        const nonMemberCheck = document.getElementById("nonMember");
-        
-        if (hanInput && nonMemberCheck) {
-            // 1. 班番号入力時の制御
-            hanInput.addEventListener("input", () => {
-                if (hanInput.value.length > 0) {
-                    nonMemberCheck.disabled = true;
-                    nonMemberCheck.parentElement.style.opacity = "0.5";
-                } else {
-                    nonMemberCheck.disabled = false;
-                    nonMemberCheck.parentElement.style.opacity = "1";
-                }
-            });
-            
-            // 2. 「会員以外」チェック時の制御
-            nonMemberCheck.addEventListener("change", () => {
-                if (nonMemberCheck.checked) {
-                    hanInput.disabled = true;
-                    hanInput.value = "";
-                    hanInput.style.backgroundColor = "#f0f0f0";
-                } else {
-                    hanInput.disabled = false;
-                    hanInput.style.backgroundColor = "#ffffff";
-                }
-            });
-        }
 
-        // 役職の自動切り替え
-        document.addEventListener('change', (e) => {
-            if (e.target.name === 'role') {
-                const generalCb = document.getElementById('role-general');
-                const otherCbs = Array.from(document.querySelectorAll('input[name="role"]:not(#role-general)'));
-                if (e.target === generalCb && generalCb.checked) {
-                    otherCbs.forEach(cb => cb.checked = false);
-                } else if (e.target !== generalCb && e.target.checked) {
-                    generalCb.checked = false;
-                }
-                if (document.querySelectorAll('input[name="role"]:checked').length === 0) {
-                    generalCb.checked = true;
-                }
+    // 要素の取得
+    const hanInput = document.getElementById("hanBan");
+    const nonMemberCheck = document.getElementById("nonMember");
+    
+    // 1. 班番号が入力されたら「会員以外」を制御
+    hanInput.addEventListener("input", () => {
+      if (hanInput.value.length > 0) {
+        nonMemberCheck.disabled = true; // チェックボックスを無効化
+        nonMemberCheck.parentElement.style.opacity = "0.5"; // 見た目を薄くする
+      } else {
+        nonMemberCheck.disabled = false;
+        nonMemberCheck.parentElement.style.opacity = "1";
+      }
+    });
+    
+    // 2. 「会員以外」がチェックされたら「班番号」を制御
+    nonMemberCheck.addEventListener("change", () => {
+      if (nonMemberCheck.checked) {
+        hanInput.disabled = true;
+        hanInput.value = ""; // 入力されていたら消去
+        hanInput.style.backgroundColor = "#f0f0f0"; // グレー背景
+      } else {
+        hanInput.disabled = false;
+        hanInput.style.backgroundColor = "#ffffff";
+      }
+    });
+    
+    document.addEventListener('change', (e) => {
+        if (e.target.name === 'role') {
+            const generalCb = document.getElementById('role-general');
+            const otherCbs = Array.from(document.querySelectorAll('input[name="role"]:not(#role-general)'));
+            if (e.target === generalCb && generalCb.checked) {
+                otherCbs.forEach(cb => cb.checked = false);
+            } else if (e.target !== generalCb && e.target.checked) {
+                generalCb.checked = false;
             }
-        });
-    };
+            if (document.querySelectorAll('input[name="role"]:checked').length === 0) {
+                generalCb.checked = true;
+            }
+        }
+    });
 
-    // ==========================================
-    // 3. 【メイン機能】送信処理
-    // ==========================================
-    async function submitForm() {
-        if (!isLiffInitialized) {
-            alert("LIFFの準備ができていません。再読み込みしてください。");
+async function submitForm() {
+    if (!isLiffInitialized) return;
+
+    const btn = document.getElementById('submitBtn');
+    const isNonMemberChecked = document.getElementById("nonMember").checked;
+    
+    const lastName = document.getElementById('lastName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const ageGeneration = document.getElementById('ageGeneration').value; 
+    const hanStr = document.getElementById('hanBan').value.trim();
+    const kobanStr = document.getElementById('koban').value.trim();
+
+    // 1. 必須チェック
+    if (!isNonMemberChecked) {
+        if (!lastName || !firstName || !hanStr || !kobanStr) {
+            alert("自治会員様は、お名前、班番号、戸番を必ず入力してください。\n（会員以外の方は「会員以外」にチェックを入れてください）");
             return;
         }
-
-        const btn = document.getElementById('submitBtn');
-        const isNonMemberChecked = document.getElementById("nonMember").checked;
         
-        const lastName = document.getElementById('lastName').value.trim();
-        const firstName = document.getElementById('firstName').value.trim();
-        const ageGeneration = document.getElementById('ageGeneration').value; 
-        const hanStr = document.getElementById('hanBan').value.trim();
-        const kobanStr = document.getElementById('koban').value.trim();
-
-        // バリデーション
-        if (!isNonMemberChecked) {
-            if (!lastName || !firstName || !hanStr || !kobanStr) {
-                alert("自治会員様は、お名前、班番号、戸番を必ず入力してください。");
-                return;
-            }
-            const han = parseInt(hanStr, 10);
-            if (isNaN(han) || han < 1 || han > 101) {
-                alert("班番号は1〜101の間で入力してください。");
-                return;
-            }
-        } else {
-            if (!lastName || !firstName) {
-                alert("お名前を入力してください。");
-                return;
-            }
+        // 2. 範囲チェック（会員のみ）
+        const han = parseInt(hanStr, 10);
+        if (isNaN(han) || han < 1 || han > 101) {
+            alert("班番号は1〜101の間で正しく入力してください。");
+            return;
         }
+        const koban = parseInt(kobanStr, 10);
+        if (isNaN(koban) || koban < 1 || koban > 19) {
+            alert("戸番は1〜19の間で正しく入力してください。");
+            return;
+        }
+    } else {
+        if (!lastName || !firstName) {
+            alert("お名前を入力してください。");
+            return;
+        }
+    }
 
-        btn.disabled = true;
-        btn.innerText = "登録中...";
+    btn.disabled = true;
+    btn.innerText = "登録中...";
 
-        const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
-        const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+    const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+    const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
 
-        try {
-            const profile = await liff.getProfile();
-            const formData = {
-                userId: profile.userId,
-                displayName: profile.displayName,
-                lastName: lastName,
-                firstName: firstName,
-                ageGeneration: ageGeneration,
-                hanban: hanStr,
-                koban: kobanStr,
-                roles: roles,
-                nonMember: isNonMemberChecked ? "YES" : "NO"
-            };
+    try {
+        const profile = await liff.getProfile();
+        const formData = {
+            userId: profile.userId,
+            displayName: profile.displayName,
+            lastName: lastName,
+            firstName: firstName,
+            ageGeneration: ageGeneration,
+            hanban: hanStr, // GAS側に合わせる
+            koban: kobanStr,
+            roles: roles,
+            nonMember: isNonMemberChecked ? "YES" : "NO"
+        };
 
-            // GASへ送信
-            await fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify(formData)
-            });
+        await fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(formData)
+        });
 
-            // 成功表示
+        // 成功時の処理...
+
             if (liff.isInClient()) {
                 await liff.sendMessages([{ type: 'text', text: "登録・更新を完了しました" }]).catch(e => console.log(e));
             }
+
             document.getElementById('input-form').style.display = 'none';
             document.getElementById('success-message').style.display = 'block';
 
@@ -248,3 +237,7 @@
         }
     }
 </script>
+</body>
+</html>
+
+
