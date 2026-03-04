@@ -103,10 +103,20 @@
     </div>
 
 <script>
+    // ==========================================
+    // 1. 【設定値】ここを書き換えるだけでOK
+    // ==========================================
     const GAS_URL = "https://script.google.com/macros/s/AKfycby8QoDh5shFpZO7Fb3gZQcSiZk2BaNNseRde7C98bmrwUQVRKOGaTuWFCNs1tPW82tt/exec";
     const LIFF_ID = "2009310809-0MVo7qOg";
+    
+    // ==========================================
+    // 2. 【内部変数】プログラムが使う変数
+    // ==========================================
     let isLiffInitialized = false;
-
+    
+    // ==========================================
+    // 3. 【初期化処理】ページが開いた時の動き
+    // =========================================
     liff.init({ liffId:LIFF_ID })
         .then(() => { 
             isLiffInitialized = true;
@@ -155,7 +165,9 @@
             }
         }
     });
-
+    // ==========================================
+    // 4. 【メイン機能】バリデーションや送信処理
+    // ==========================================
 async function submitForm() {
     if (!isLiffInitialized) return;
 
@@ -207,7 +219,7 @@ async function submitForm() {
             lastName: lastName,
             firstName: firstName,
             ageGeneration: ageGeneration,
-            hanban: hanStr, // GAS側に合わせる
+            hanban: hanStr,
             koban: kobanStr,
             roles: roles,
             nonMember: isNonMemberChecked ? "YES" : "NO"
@@ -220,7 +232,6 @@ async function submitForm() {
         });
 
         // 成功時の処理...
-
             if (liff.isInClient()) {
                 await liff.sendMessages([{ type: 'text', text: "登録・更新を完了しました" }]).catch(e => console.log(e));
             }
