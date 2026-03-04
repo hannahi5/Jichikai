@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>関ヶ谷自治会 公式LINE 利用者登録・更新</title>
+    <title>関ヶ谷自治会 公式LINE 利用登録・更新</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 15px; background-color: #f4f7f6; }
@@ -27,12 +27,16 @@
 
         #success-message { display: none; text-align: center; padding: 40px 10px; }
         #success-message h3 { color: #1DB446; margin-bottom: 10px; }
+        
+        /* 例外セクション */
+      .extra-section { margin-top: 30px; border-top: 1px solid #ccc; pt: 15px; padding-top: 25px;}
+      .option-special { display: block; color: #d9534f; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="input-form">
-            <h2>関ヶ谷自治会 公式LINE 利用者登録・更新</h2>
+            <h2>関ヶ谷自治会 公式LINE 利用登録・更新</h2>
             
             <div class="form-group">
                 <label>お名前<span class="required">必須</span></label>
@@ -40,6 +44,17 @@
                     <input type="text" id="lastName" placeholder="姓">
                     <input type="text" id="firstName" placeholder="名">
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label>班番号（1〜101）<span class="required">必須</span></label>
+                <input type="number" id="hanBan" placeholder="数字で入力" min="1" max="101" inputmode="numeric">
+                <p class="hint">※複数の班がある場合は、小さい方の班番号を入力してください</p>
+            </div>
+
+            <div class="form-group">
+                <label>戸番（1〜19）<span class="required">必須</span></label>
+                <input type="number" id="koban" placeholder="数字で入力" min="1" max="19" inputmode="numeric">
             </div>
 
             <div class="form-group">
@@ -58,28 +73,25 @@
             </div>
 
             <div class="form-group">
-                <label>班番号（1〜101）<span class="required">必須</span></label>
-                <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="101" inputmode="numeric">
-                <p class="hint">※複数班がある場合は、小さい方の班番号を記載してください</p>
-            </div>
-
-            <div class="form-group">
-                <label>戸番（1〜19）</label>
-                <input type="number" id="toban" placeholder="数字で入力" min="1" max="19" inputmode="numeric">
-            </div>
-
-            <div class="form-group">
                 <label>該当する役職（役職の複数選択可）</label>
                 <div class="option-list">
                     <label class="option"><input type="checkbox" name="role" value="一般" id="role-general" checked> 一般（役職なし）</label>
-                    <label class="option"><input type="checkbox" name="role" value="地区長"> 地区長</label>
-                    <label class="option"><input type="checkbox" name="role" value="班長"> 班長</label>
-                    <label class="option"><input type="checkbox" name="role" value="班長(代理)"> 班長(代理)</label>
+                    <label class="option"><input type="checkbox" name="role" value="2026前期 - 地区長"> 2026前期 - 地区長</label>
+                    <label class="option"><input type="checkbox" name="role" value="2026前期 - 班長"> 2026前期 - 班長</label>
+                    <label class="option"><input type="checkbox" name="role" value="2026前期 - 班長(代理)"> 2026前期 - 班長（代理）</label>
                     <label class="option"><input type="checkbox" name="role" value="防災部"> 防災部</label>
                     <label class="option"><input type="checkbox" name="role" value="その他役員"> その他役員</label>
                 </div>
             </div>
-            <button class="btn" id="submitBtn" onclick="submitForm()">この内容で保存する</button>
+            <div class="extra-section">
+              <label class="option-special">
+                <input type="checkbox" name="non_member" id="nonMember" value="YES"> 
+                会員以外
+              </label>
+                   <p class="hint">※会員以外の方は、お名前の入力のみ必須です</p>
+            
+            </div>            
+            <button class="btn" id="submitBtn" onclick="submitForm()">この内容で登録する</button>
         </div>
 
         <div id="success-message">
@@ -91,7 +103,7 @@
     </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyM5hfmPP5AoF0QzKPMwQT6dR1QVLpY2ei1lJOszAeOFBlc0OGp3TMhLAOQCReddBjU3g/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby8QoDh5shFpZO7Fb3gZQcSiZk2BaNNseRde7C98bmrwUQVRKOGaTuWFCNs1tPW82tt/exec";
     const LIFF_ID = "2009260987-4wydhg8q";
     let isLiffInitialized = false;
 
@@ -101,6 +113,34 @@
             if (!liff.isLoggedIn()) { liff.login(); } 
         });
 
+
+    // 要素の取得
+    const hanInput = document.getElementById("hanBan");
+    const nonMemberCheck = document.getElementById("nonMember");
+    
+    // 1. 班番号が入力されたら「会員以外」を制御
+    hanInput.addEventListener("input", () => {
+      if (hanInput.value.length > 0) {
+        nonMemberCheck.disabled = true; // チェックボックスを無効化
+        nonMemberCheck.parentElement.style.opacity = "0.5"; // 見た目を薄くする
+      } else {
+        nonMemberCheck.disabled = false;
+        nonMemberCheck.parentElement.style.opacity = "1";
+      }
+    });
+    
+    // 2. 「会員以外」がチェックされたら「班番号」を制御
+    nonMemberCheck.addEventListener("change", () => {
+      if (nonMemberCheck.checked) {
+        hanInput.disabled = true;
+        hanInput.value = ""; // 入力されていたら消去
+        hanInput.style.backgroundColor = "#f0f0f0"; // グレー背景
+      } else {
+        hanInput.disabled = false;
+        hanInput.style.backgroundColor = "#ffffff";
+      }
+    });
+    
     document.addEventListener('change', (e) => {
         if (e.target.name === 'role') {
             const generalCb = document.getElementById('role-general');
@@ -116,64 +156,70 @@
         }
     });
 
-    async function submitForm() {
-        if (!isLiffInitialized) return;
+async function submitForm() {
+    if (!isLiffInitialized) return;
 
-        const btn = document.getElementById('submitBtn');
-        const lastName = document.getElementById('lastName').value.trim();
-        const firstName = document.getElementById('firstName').value.trim();
-        const ageGeneration = document.getElementById('ageGeneration').value; 
-        const hanStr = document.getElementById('hanNum').value.trim();
-        const tobanStr = document.getElementById('toban').value.trim();
+    const btn = document.getElementById('submitBtn');
+    const isNonMemberChecked = document.getElementById("nonMember").checked;
+    
+    const lastName = document.getElementById('lastName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const ageGeneration = document.getElementById('ageGeneration').value; 
+    const hanStr = document.getElementById('hanBan').value.trim();
+    const kobanStr = document.getElementById('koban').value.trim();
 
-        // --- バリデーション（入力チェック） ---
-        
-        // 1. 必須チェック
-        if (!lastName || !firstName || !hanStr) {
-            alert("お名前、班番号は必ず入力してください。");
+    // 1. 必須チェック
+    if (!isNonMemberChecked) {
+        if (!lastName || !firstName || !hanStr || !kobanStr) {
+            alert("自治会員様は、お名前、班番号、戸番を必ず入力してください。\n（会員以外の方は「会員以外」にチェックを入れてください）");
             return;
         }
-
-        // 2. 班番号の範囲チェック (1〜101)
+        
+        // 2. 範囲チェック（会員のみ）
         const han = parseInt(hanStr, 10);
         if (isNaN(han) || han < 1 || han > 101) {
             alert("班番号は1〜101の間で正しく入力してください。");
             return;
         }
-
-        // 3. 戸番の範囲チェック (入力がある場合のみ、1〜19)
-        if (tobanStr !== "") {
-            const toban = parseInt(tobanStr, 10);
-            if (isNaN(toban) || toban < 1 || toban > 19) {
-                alert("戸番は1〜19の間で正しく入力してください。");
-                return;
-            }
+        const koban = parseInt(kobanStr, 10);
+        if (isNaN(koban) || koban < 1 || koban > 19) {
+            alert("戸番は1〜19の間で正しく入力してください。");
+            return;
         }
+    } else {
+        if (!lastName || !firstName) {
+            alert("お名前を入力してください。");
+            return;
+        }
+    }
 
-        btn.disabled = true;
-        btn.innerText = "送信中...";
+    btn.disabled = true;
+    btn.innerText = "登録中...";
 
-        const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
-        const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+    const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+    const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
 
-        try {
-            const profile = await liff.getProfile();
-            const formData = {
-                userId: profile.userId,
-                displayName: profile.displayName,
-                lastName: lastName,
-                firstName: firstName,
-                ageGeneration: ageGeneration,
-                han: han,
-                toban: tobanStr,
-                roles: roles
-            };
+    try {
+        const profile = await liff.getProfile();
+        const formData = {
+            userId: profile.userId,
+            displayName: profile.displayName,
+            lastName: lastName,
+            firstName: firstName,
+            ageGeneration: ageGeneration,
+            hanban: hanStr, // GAS側に合わせる
+            koban: kobanStr,
+            roles: roles,
+            nonMember: isNonMemberChecked ? "YES" : "NO"
+        };
 
-            await fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify(formData)
-            });
+        await fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(formData)
+        });
+
+        // 成功時の処理...
 
             if (liff.isInClient()) {
                 await liff.sendMessages([{ type: 'text', text: "登録・更新を完了しました" }]).catch(e => console.log(e));
@@ -186,7 +232,7 @@
             console.error(error);
             alert("送信に失敗しました。");
             btn.disabled = false;
-            btn.innerText = "この内容で保存する";
+            btn.innerText = "この内容で登録する";
         }
     }
 </script>
