@@ -51,7 +51,7 @@
             <div class="form-group">
                 <label>班番号（1〜101）<span class="required">必須</span></label>
                 <input type="number" id="hanNum" placeholder="数字で入力" min="1" max="101" inputmode="numeric">
-                <p class="hint">※複数班がある場合は、小さい方の班番号を記載してください</p>
+                <p class="hint">※複数の班がある場合は、小さい方の班番号を入力してください</p>
             </div>
 
             <div class="form-group">
@@ -145,10 +145,20 @@
 
         // --- バリデーション（入力チェック） ---
         
-        // 1. 必須チェック
-        if (!lastName || !firstName || !hanStr|| !kobanStr ) {
-            alert("お名前、班番号、戸番は必ず入力してください。");
-            return;
+        // 1. 必須チェックのロジック変更
+        // 「会員以外」にチェックが入っていない（通常の会員登録の）場合のみ、厳格にチェックする
+        if (!isNonMember) {
+            if (!lastName || !firstName || !hanStr || !kobanStr) {
+                alert("自治会員様は、お名前、班番号、戸番を必ず入力してください。\n（会員以外の方は「会員以外」にチェックを入れてください）");
+                return;
+            }
+        } else {
+            // 「会員以外」にチェックが入っている場合
+            // 最低限「お名前」だけは入れてほしい場合は、以下のように書けます
+            if (!lastName || !firstName) {
+                alert("お名前を入力してください。");
+                return;
+            }
         }
 
         // 2. 班番号の範囲チェック (1〜101)
