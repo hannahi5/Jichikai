@@ -64,8 +64,8 @@
             </div>
 
             <div class="form-group">
-                <label>戸番（1〜19）</label>
-                <input type="number" id="toban" placeholder="数字で入力" min="1" max="19" inputmode="numeric">
+                <label>戸番（1〜19）<span class="required">必須</span></label>
+                <input type="number" id="koban" placeholder="数字で入力" min="1" max="19" inputmode="numeric">
             </div>
 
             <div class="form-group">
@@ -124,13 +124,13 @@
         const firstName = document.getElementById('firstName').value.trim();
         const ageGeneration = document.getElementById('ageGeneration').value; 
         const hanStr = document.getElementById('hanNum').value.trim();
-        const tobanStr = document.getElementById('toban').value.trim();
+        const kobanStr = document.getElementById('koban').value.trim();
 
         // --- バリデーション（入力チェック） ---
         
         // 1. 必須チェック
-        if (!lastName || !firstName || !hanStr) {
-            alert("お名前、班番号は必ず入力してください。");
+        if (!lastName || !firstName || !hanStr|| !kobanStr ) {
+            alert("お名前、班番号、戸番は必ず入力してください。");
             return;
         }
 
@@ -142,9 +142,9 @@
         }
 
         // 3. 戸番の範囲チェック (入力がある場合のみ、1〜19)
-        if (tobanStr !== "") {
-            const toban = parseInt(tobanStr, 10);
-            if (isNaN(toban) || toban < 1 || toban > 19) {
+        if (kobanStr !== "") {
+            const koban = parseInt(kobanStr, 10);
+            if (isNaN(koban) || koban < 1 || koban > 19) {
                 alert("戸番は1〜19の間で正しく入力してください。");
                 return;
             }
@@ -165,7 +165,7 @@
                 firstName: firstName,
                 ageGeneration: ageGeneration,
                 han: han,
-                toban: tobanStr,
+                koban: kobanStr,
                 roles: roles
             };
 
