@@ -156,74 +156,70 @@
         }
     });
 
-    async function submitForm() {
-        if (!isLiffInitialized) return;
+async function submitForm() {
+    if (!isLiffInitialized) return;
 
-        const btn = document.getElementById('submitBtn');
-        const lastName = document.getElementById('lastName').value.trim();
-        const firstName = document.getElementById('firstName').value.trim();
-        const ageGeneration = document.getElementById('ageGeneration').value; 
-        const hanStr = document.getElementById('hanBan').value.trim();
-        const kobanStr = document.getElementById('koban').value.trim();
+    const btn = document.getElementById('submitBtn');
+    const isNonMemberChecked = document.getElementById("nonMember").checked;
+    
+    const lastName = document.getElementById('lastName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const ageGeneration = document.getElementById('ageGeneration').value; 
+    const hanStr = document.getElementById('hanBan').value.trim();
+    const kobanStr = document.getElementById('koban').value.trim();
 
-        // --- バリデーション（入力チェック） ---
-        
-        // 1. 必須チェックのロジック変更
-        // 「会員以外」にチェックが入っていない（通常の会員登録の）場合のみ、厳格にチェックする
-        if (!isNonMember) {
-            if (!lastName || !firstName || !hanStr || !kobanStr) {
-                alert("自治会員様は、お名前、班番号、戸番を必ず入力してください。\n（会員以外の方は「会員以外」にチェックを入れてください）");
-                return;
-            }
-        } else {
-            // 「会員以外」にチェックが入っている場合
-            // 最低限「お名前」だけは入れてほしい場合は、以下のように書けます
-            if (!lastName || !firstName) {
-                alert("お名前を入力してください。");
-                return;
-            }
+    // 1. 必須チェック
+    if (!isNonMemberChecked) {
+        if (!lastName || !firstName || !hanStr || !kobanStr) {
+            alert("自治会員様は、お名前、班番号、戸番を必ず入力してください。\n（会員以外の方は「会員以外」にチェックを入れてください）");
+            return;
         }
-
-        // 2. 班番号の範囲チェック (1〜101)
+        
+        // 2. 範囲チェック（会員のみ）
         const han = parseInt(hanStr, 10);
         if (isNaN(han) || han < 1 || han > 101) {
             alert("班番号は1〜101の間で正しく入力してください。");
             return;
         }
-
-        // 3. 戸番の範囲チェック (入力がある場合のみ、1〜19)
-        if (kobanStr !== "") {
-            const koban = parseInt(kobanStr, 10);
-            if (isNaN(koban) || koban < 1 || koban > 19) {
-                alert("戸番は1〜19の間で正しく入力してください。");
-                return;
-            }
+        const koban = parseInt(kobanStr, 10);
+        if (isNaN(koban) || koban < 1 || koban > 19) {
+            alert("戸番は1〜19の間で正しく入力してください。");
+            return;
         }
+    } else {
+        if (!lastName || !firstName) {
+            alert("お名前を入力してください。");
+            return;
+        }
+    }
 
-        btn.disabled = true;
-        btn.innerText = "登録中...";
+    btn.disabled = true;
+    btn.innerText = "登録中...";
 
-        const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
-        const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
+    const selectedRoles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(el => el.value);
+    const roles = selectedRoles.length > 0 ? selectedRoles.join('/') : "一般";
 
-        try {
-            const profile = await liff.getProfile();
-            const formData = {
-                userId: profile.userId,
-                displayName: profile.displayName,
-                lastName: lastName,
-                firstName: firstName,
-                ageGeneration: ageGeneration,
-                han: han,
-                koban: kobanStr,
-                roles: roles
-            };
+    try {
+        const profile = await liff.getProfile();
+        const formData = {
+            userId: profile.userId,
+            displayName: profile.displayName,
+            lastName: lastName,
+            firstName: firstName,
+            ageGeneration: ageGeneration,
+            hanban: hanStr, // GAS側に合わせる
+            koban: kobanStr,
+            roles: roles,
+            nonMember: isNonMemberChecked ? "YES" : "NO"
+        };
 
-            await fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: JSON.stringify(formData)
-            });
+        await fetch(GAS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(formData)
+        });
+
+        // 成功時の処理...
 
             if (liff.isInClient()) {
                 await liff.sendMessages([{ type: 'text', text: "登録・更新を完了しました" }]).catch(e => console.log(e));
