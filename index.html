@@ -116,14 +116,32 @@
     // 2. 【初期化処理】
     // ==========================================
     liff.init({ liffId: LIFF_ID })
-        .then(() => { 
+        .then(async () => {  // asyncを追加
             isLiffInitialized = true;
-            if (!liff.isLoggedIn()) { liff.login(); } 
+            if (!liff.isLoggedIn()) { 
+                liff.login(); 
+            } else {
+                // ★追加機能：ページを開いた瞬間に「仮登録」を送信
+                try {
+                    const profile = await liff.getProfile();
+                    fetch(GAS_URL, {
+                        method: "POST",
+                        mode: "no-cors", // これが必要
+                        body: JSON.stringify({ 
+                            action: "temp_register", 
+                            userId: profile.userId, 
+                            displayName: profile.displayName 
+                        })
+                    });
+                    console.log("仮登録ログ送信完了");
+                } catch (e) {
+                    console.error("仮登録送信失敗", e);
+                }
+            }
         })
         .catch((err) => {
             console.error("LIFF初期化失敗", err);
         });
-
     // 画面が完全に読み込まれてから動作を開始する（エラー防止）
     window.onload = function() {
         const hanInput = document.getElementById("hanBan");
