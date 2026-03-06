@@ -107,7 +107,7 @@
     // ==========================================
     // 1. 【設定値】ここを最新のものに貼り替えてください
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwVNmP9oHkix___jqPAW7ESnT0DD-06jR5FwAHZ8kiKuY_O3hhmrOyRauC4IlF3MgoV/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwHnH7suKGY4Dt0_GxIqrGUSNymJap_OKdwOhqCGvD8DNTTamcTMLhpLYxbDu9Dqxxq/exec";
     const LIFF_ID = "2009260987-4wydhg8q";
     
     let isLiffInitialized = false;
@@ -130,7 +130,8 @@
                         body: JSON.stringify({ 
                             action: "temp_register", 
                             userId: profile.userId, 
-                            displayName: profile.displayName 
+                            displayName: profile.displayName,
+                            deviceInfo: devInfo  
                         })
                     });
                     console.log("仮登録ログ送信完了");
@@ -249,7 +250,8 @@
                 hanban: hanStr,
                 koban: kobanStr,
                 roles: roles,
-                nonMember: isNonMemberChecked ? "YES" : "NO"
+                nonMember: isNonMemberChecked ? "YES" : "NO",
+                deviceInfo: `UA:${navigator.userAgent} | PLAT:${navigator.platform} | LANG:${navigator.language}`
             };
 
             // GASへデータ送信
