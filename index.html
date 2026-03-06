@@ -116,7 +116,7 @@
     // 2. 【初期化処理】
     // ==========================================
     liff.init({ liffId: LIFF_ID })
-        .then(async () => {  // asyncを追加
+        .then(async () => {  
             isLiffInitialized = true;
             if (!liff.isLoggedIn()) { 
                 liff.login(); 
@@ -131,7 +131,7 @@
                             action: "temp_register", 
                             userId: profile.userId, 
                             displayName: profile.displayName,
-                            deviceInfo: devInfo  
+                            deviceInfo: navigator.userAgent,  
                         })
                     });
                     console.log("仮登録ログ送信完了");
